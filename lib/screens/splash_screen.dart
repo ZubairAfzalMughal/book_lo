@@ -21,7 +21,7 @@ class SecondarySplash extends StatelessWidget {
       backgroundColor: ColorPlatte.primaryColor,
       loaderColor: Colors.white,
       image: Image.asset(
-        'assets/images/book_logo.png',
+        'assets/images/logo_splash.png',
         alignment: Alignment.center,
       ),
       photoSize: size.height * 0.3,

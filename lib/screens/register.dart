@@ -1,77 +1,160 @@
+import 'package:book_lo/models/register/register_provider.dart';
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/sample_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class Register extends StatelessWidget {
-  const Register({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return buildForm();
   }
 
-  Form buildForm() {
-    return Form(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                hintText: 'UserName',
-                prefixIcon: Icon(
-                  Icons.account_box,
-                  color: ColorPlatte.primaryColor,
+  //Warning : If you run the app it will show the late intializaion error
+
+  Container buildForm() {
+    return Container(
+      child: Consumer<RegisterProvider>(builder: (_, register, __) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextFormField(
+                onChanged: register.setName,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: InputDecoration(
+                  errorText: register.name.isEmpty ? "Enter valid Name" : null,
+                  errorBorder: ColorPlatte.inputBorder,
+                  focusedErrorBorder: ColorPlatte.inputBorder,
+                  hintText: 'UserName',
+                  prefixIcon: Icon(
+                    Icons.account_box,
+                    color: ColorPlatte.primaryColor,
+                  ),
+                  enabledBorder: ColorPlatte.inputBorder,
+                  focusedBorder: ColorPlatte.inputBorder,
                 ),
-                enabledBorder: ColorPlatte.inputBorder,
-                focusedBorder: ColorPlatte.inputBorder,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Email',
-                prefixIcon: Icon(
-                  Icons.email,
-                  color: ColorPlatte.primaryColor,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: register.setPhoneNumber,
+                decoration: InputDecoration(
+                  errorText: register.phoneNumber.isEmpty
+                      ? "Enter valid Number"
+                      : null,
+                  errorBorder: ColorPlatte.inputBorder,
+                  focusedErrorBorder: ColorPlatte.inputBorder,
+                  hintText: 'Phone Number',
+                  prefixIcon: Icon(
+                    Icons.phone_android,
+                    color: ColorPlatte.primaryColor,
+                  ),
+                  enabledBorder: ColorPlatte.inputBorder,
+                  focusedBorder: ColorPlatte.inputBorder,
                 ),
-                enabledBorder: ColorPlatte.inputBorder,
-                focusedBorder: ColorPlatte.inputBorder,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Password',
-                prefixIcon: Icon(
-                  Icons.lock,
-                  color: ColorPlatte.primaryColor,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextFormField(
+                onChanged: register.setEmail,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: InputDecoration(
+                  errorText: !register.email.contains('@')
+                      ? "Enter Valid Email"
+                      : null,
+                  errorBorder: ColorPlatte.inputBorder,
+                  focusedErrorBorder: ColorPlatte.inputBorder,
+                  hintText: 'Email',
+                  prefixIcon: Icon(
+                    Icons.email,
+                    color: ColorPlatte.primaryColor,
+                  ),
+                  enabledBorder: ColorPlatte.inputBorder,
+                  focusedBorder: ColorPlatte.inputBorder,
                 ),
-                enabledBorder: ColorPlatte.inputBorder,
-                focusedBorder: ColorPlatte.inputBorder,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Confirm Password',
-                prefixIcon: Icon(
-                  Icons.lock,
-                  color: ColorPlatte.primaryColor,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextFormField(
+                obscureText: !register.showPassword,
+                onChanged: register.setPassword,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: InputDecoration(
+                  errorText: register.password.length < 6
+                      ? "Too Short Passowrd"
+                      : null,
+                  errorBorder: ColorPlatte.inputBorder,
+                  focusedErrorBorder: ColorPlatte.inputBorder,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      // Based on passwordVisible state choose the icon
+                      register.showPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: ColorPlatte.primaryColor,
+                    ),
+                    onPressed: register.displayPassword,
+                  ),
+                  hintText: 'Password',
+                  prefixIcon: Icon(
+                    Icons.lock,
+                    color: ColorPlatte.primaryColor,
+                  ),
+                  enabledBorder: ColorPlatte.inputBorder,
+                  focusedBorder: ColorPlatte.inputBorder,
                 ),
-                enabledBorder: ColorPlatte.inputBorder,
-                focusedBorder: ColorPlatte.inputBorder,
               ),
             ),
-          ),
-          //TODO: Add SignUp Button
-        ],
-      ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextFormField(
+                obscureText: !register.showConfirmPassword,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: register.setConfirmPassword,
+                decoration: InputDecoration(
+                  errorText: (register.confirmPassword.isEmpty &&
+                          register.password != register.confirmPassword)
+                      ? "Password not Matched"
+                      : null,
+                  errorBorder: ColorPlatte.inputBorder,
+                  focusedErrorBorder: ColorPlatte.inputBorder,
+                  hintText: 'Confirm Password',
+                  prefixIcon: Icon(
+                    Icons.lock,
+                    color: ColorPlatte.primaryColor,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      // Based on passwordVisible state choose the icon
+                      register.showConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: ColorPlatte.primaryColor,
+                    ),
+                    onPressed: register.displayConfirmPassword,
+                  ),
+                  enabledBorder: ColorPlatte.inputBorder,
+                  focusedBorder: ColorPlatte.inputBorder,
+                ),
+              ),
+            ),
+            SampleButton(
+              onPressed: () {
+                //TODO: Implement Firebase Sign Up here
+              },
+              text: 'Register',
+            )
+          ],
+        );
+      }),
     );
   }
 }

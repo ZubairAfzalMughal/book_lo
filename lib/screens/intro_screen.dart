@@ -25,23 +25,22 @@ class IntroScreen extends StatelessWidget {
         ),
         pages: [
           PageViewModel(
-            title: "Iasdf",
-            body: "Basd",
-            image: SvgPicture.asset('assets/svg_images/intro_1.svg'),
-          ),
-          PageViewModel(
-            title: "Iasf",
-            body: "Basfee",
+            title: "Finding Books is Diffult! 😥",
+            body:
+                "Some people have books they do not need after reading them, and others cannot afford to purchase the books they want to read",
             image: SvgPicture.asset('assets/svg_images/intro_2.svg'),
           ),
           PageViewModel(
-            title: "Iasff",
-            body: "Baff",
+            title: "What is Book Lo",
+            body:
+                "Our aim is to reduce the shortage of required books by developing a plateform that effectively allows people to share books online and in person. ",
             image: SvgPicture.asset('assets/svg_images/intro_3.svg'),
           ),
           PageViewModel(
-            title: "I",
-            body: "adf",
+            title: "Let\'s Start 😀",
+            body:
+                "it will empower the people to strengthen their communities and aim to accomplish"
+                "this through technology",
             image: SvgPicture.asset('assets/svg_images/intro_4.svg'),
           ),
         ],
