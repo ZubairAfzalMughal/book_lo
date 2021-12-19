@@ -1,47 +1,43 @@
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/profile_image.dart';
 import 'package:flutter/material.dart';
 
 class ProfileHeader extends StatelessWidget {
   final String name;
   final String cityName;
-  final String imgUrl;
+  final Widget imgProvider;
+  final Widget icon;
   ProfileHeader({
     required this.name,
     required this.cityName,
-    required this.imgUrl,
+    required this.imgProvider,
+    required this.icon,
   });
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Container(
       width: size.width,
-      height: size.height * 0.3,
       child: Padding(
         padding: const EdgeInsets.all(18.0),
         child: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: ColorPlatte.primaryColor, width: 2.0),
-                borderRadius: BorderRadius.circular(50.0),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(50.0),
-                child: Image.asset(
-                  imgUrl,
-                  height: 100.0,
-                  width: 100.0,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                ),
-              ),
-            ),
+            ProfileImage(imageProvider: imgProvider),
             SizedBox(
               height: 10.0,
             ),
-            Text(
-              name,
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22.0),
+                ),
+                SizedBox(
+                  width: 10.0,
+                ),
+                icon,
+              ],
             ),
             Text(
               cityName,

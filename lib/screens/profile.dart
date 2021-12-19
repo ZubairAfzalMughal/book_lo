@@ -1,7 +1,15 @@
+import 'package:book_lo/apis/user.dart';
+import 'package:book_lo/app_shimmers/profile_header_shimmer.dart';
+import 'package:book_lo/models/Post/post_model.dart';
+import 'package:book_lo/models/user/user_model.dart';
+import 'package:book_lo/screens/edit_Profile.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/Profile_header.dart';
+import 'package:book_lo/widgets/post_card.dart';
 import 'package:book_lo/widgets/profile_stat.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -15,68 +23,134 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
-
     super.initState();
   }
 
   int selectdTab = 0;
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final post = context.read<PostProvider>().post;
     return Scaffold(
       appBar: AppBar(
+        title: Text("Profile"),
         automaticallyImplyLeading: false,
-        title: Text("Book Lo"),
-        centerTitle: true,
-        actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.menu)),
-        ],
       ),
       body: CustomScrollView(
+        scrollDirection: Axis.vertical,
         slivers: [
           SliverToBoxAdapter(
-            child: ProfileHeader(
-              name: "Noman Ahmad",
-              cityName: "Lahore, Pakistan",
-              imgUrl: "assets/images/empty_profile.png",
-            ),
+            child: FutureBuilder<DocumentSnapshot>(
+                future:
+                    Provider.of<UserProvider>(context, listen: false).getUser(),
+                builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ProfileHeaderShimmer();
+                  }
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  //Using User model
+                  final user = AppUser.fromDocument(data);
+                  return ProfileHeader(
+                    icon: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditProfile(
+                                name: user.name,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.edit,
+                          color: ColorPlatte.primaryColor,
+                        )),
+                    name: user.name,
+                    cityName: user.location,
+                    imgProvider: user.imgUrl.isEmpty
+                        ? Image.asset(
+                            'assets/images/empty_profile.png',
+                            height: 100.0,
+                            width: 100.0,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.network(
+                            user.imgUrl,
+                            height: 100.0,
+                            width: 100.0,
+                            fit: BoxFit.cover,
+                          ),
+                  );
+                }),
           ),
           SliverToBoxAdapter(
-            child: ProfileStat(
-              offer: 10,
-              request: 10,
-              likes: 100,
-            ),
+            child: ProfileStat(ratings: 4, offer: 150, request: 4),
           ),
-          SliverToBoxAdapter(
-            child: TabBar(
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            automaticallyImplyLeading: false,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            toolbarHeight: 0.0,
+            expandedHeight: 0.0,
+            bottom: TabBar(
               controller: _tabController,
-              unselectedLabelColor: Colors.black,
-              labelColor: ColorPlatte.primaryColor,
               indicatorColor: ColorPlatte.primaryColor,
-              onTap: (index) {
-                setState(() {
-                  selectdTab = index;
-                });
-              },
+              labelColor: ColorPlatte.primaryColor,
               tabs: [
-                Tab(
-                  text: "Offer",
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Offer"),
                 ),
-                Tab(
-                  text: "Request",
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Request"),
                 ),
               ],
             ),
           ),
-          _buildTabBody(),
+
+          SliverFillRemaining(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                //Offer Page
+                Container(
+                  child: ListView.builder(
+                    itemCount: post.length,
+                    itemBuilder: (ctx, index) =>
+                        BuildPostCard(post: post[index], isRequested: false),
+                  ),
+                ),
+                //Request Page
+                Container(
+                  child: ListView.builder(
+                    itemCount: post.length,
+                    itemBuilder: (ctx, index) =>
+                        BuildPostCard(post: post[index], isRequested: false),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // SliverList(
+          //   delegate: SliverChildListDelegate(
+          //     [
+          //       Container(
+          //         height: 1000.0,
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
-    );
-  }
-
-  SliverToBoxAdapter _buildTabBody() {
-    return SliverToBoxAdapter(
-      child: selectdTab == 0 ? Text("Offer") : Text("Request"),
     );
   }
 }

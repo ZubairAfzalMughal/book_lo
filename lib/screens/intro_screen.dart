@@ -39,7 +39,7 @@ class IntroScreen extends StatelessWidget {
           PageViewModel(
             title: "Let\'s Start 😀",
             body:
-                "it will empower the people to strengthen their communities and aim to accomplish"
+                "it will empower the people to strengthen their communities and aim to accomplish "
                 "this through technology",
             image: SvgPicture.asset('assets/svg_images/intro_4.svg'),
           ),
@@ -52,7 +52,14 @@ class IntroScreen extends StatelessWidget {
             ),
           );
         },
-        onSkip: () {},
+        onSkip: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => Login(),
+            ),
+          );
+        },
         showSkipButton: true,
         showNextButton: true,
         skip: buildButton(

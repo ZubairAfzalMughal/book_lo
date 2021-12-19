@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegisterProvider extends ChangeNotifier {
+  FirebaseAuth auth = FirebaseAuth.instance;
+  FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   String _name = "";
   String _email = "";
   String _password = "";
@@ -18,6 +22,7 @@ class RegisterProvider extends ChangeNotifier {
   String get confirmPassword => _confirmPassword;
   String get phoneNumber => _phoneNumber;
   bool get isLoading => _isLoading;
+
   void setName(String n) {
     this._name = n;
     notifyListeners();
@@ -29,7 +34,7 @@ class RegisterProvider extends ChangeNotifier {
   }
 
   void setPhoneNumber(String pNumber) {
-    this._phoneNumber = pNumber;
+    this._phoneNumber = "+" + pNumber;
     notifyListeners();
   }
 
@@ -61,5 +66,11 @@ class RegisterProvider extends ChangeNotifier {
   void displayConfirmPassword() {
     this._showConfirmPassword = !this._showConfirmPassword;
     notifyListeners();
+  }
+
+  //Handling Registration Firebase Functionalities
+
+  Future<UserCredential> registeration(String e, String p) async {
+    return auth.createUserWithEmailAndPassword(email: e, password: p);
   }
 }

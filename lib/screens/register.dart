@@ -1,5 +1,7 @@
 import 'package:book_lo/models/register/register_provider.dart';
+import 'package:book_lo/screens/bottom_navigation_bar.dart';
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/error_dialog.dart';
 import 'package:book_lo/widgets/sample_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,12 +10,12 @@ import 'package:provider/provider.dart';
 class Register extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return buildForm();
+    return buildForm(context);
   }
 
   //Warning : If you run the app it will show the late intializaion error
 
-  Container buildForm() {
+  Container buildForm(context) {
     return Container(
       child: Consumer<RegisterProvider>(builder: (_, register, __) {
         return Column(
@@ -50,7 +52,7 @@ class Register extends StatelessWidget {
                       : null,
                   errorBorder: ColorPlatte.inputBorder,
                   focusedErrorBorder: ColorPlatte.inputBorder,
-                  hintText: 'Phone Number',
+                  hintText: '92xxxxxxxxx',
                   prefixIcon: Icon(
                     Icons.phone_android,
                     color: ColorPlatte.primaryColor,
@@ -146,12 +148,48 @@ class Register extends StatelessWidget {
                 ),
               ),
             ),
-            SampleButton(
-              onPressed: () {
-                //TODO: Implement Firebase Sign Up here
-              },
-              text: 'Register',
-            )
+            !register.isLoading
+                ? SampleButton(
+                    onPressed: () async {
+                      register.showLoader();
+                      register
+                          .registeration(register.email, register.password)
+                          .then(
+                        (value) {
+                          register.offLoader();
+                          register.firebaseFirestore
+                              .collection('users')
+                              .doc(register.auth.currentUser!.uid)
+                              .set({
+                            'name': register.name,
+                            'email': register.email,
+                            'phone': register.phoneNumber,
+                            'isVerified': false,
+                            "imgUrl": "",
+                            'location': "",
+                          });
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BottomNavigation(),
+                              ),
+                              (route) => false);
+                        },
+                      ).catchError((error) {
+                        register.offLoader();
+                        showDialog(
+                            context: context,
+                            builder: (_) => ErrorLog(
+                                  text: error.toString(),
+                                ));
+                      });
+                    },
+                    text: 'Register',
+                  )
+                : CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation(ColorPlatte.primaryColor),
+                  ),
           ],
         );
       }),

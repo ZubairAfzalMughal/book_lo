@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 class ProfileStat extends StatelessWidget {
   final int offer;
   final int request;
-  final int likes;
+  final int ratings;
   ProfileStat(
-      {required this.likes, required this.offer, required this.request});
+      {required this.ratings, required this.offer, required this.request});
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -39,7 +39,7 @@ class ProfileStat extends StatelessWidget {
             ),
           ),
           Text(
-            "Likes\n$likes",
+            "Rating\n$ratings",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,

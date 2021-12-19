@@ -1,8 +1,10 @@
 import 'package:book_lo/models/login/login_model.dart';
-import 'package:book_lo/screens/otps_screen.dart';
+import 'package:book_lo/screens/bottom_navigation_bar.dart';
 import 'package:book_lo/screens/register.dart';
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/error_dialog.dart';
 import 'package:book_lo/widgets/sample_button.dart';
+import 'package:book_lo/widgets/showIndicator.dart';
 import 'package:book_lo/widgets/toggle_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -142,20 +144,33 @@ class _LoginState extends State<Login> {
               ),
             ),
             SizedBox(height: 15.0),
-            SampleButton(
-              onPressed: () {
-                //TODO: Implement Login Here
-                print(login.email);
-                print(login.passowrd);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => OtpScreens(),
-                  ),
-                );
-              },
-              text: 'Login',
-            ),
+            !login.isLoading
+                ? SampleButton(
+                    onPressed: () {
+                      login.showLoader();
+                      login.signIn(login.email, login.passowrd).then(
+                        (value) {
+                          login.offLoader();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BottomNavigation(),
+                            ),
+                          );
+                        },
+                      ).catchError((error) {
+                        login.offLoader();
+                        showDialog(
+                          context: context,
+                          builder: (context) => ErrorLog(
+                            text: error.toString(),
+                          ),
+                        );
+                      });
+                    },
+                    text: 'Login',
+                  )
+                : loadingIndicator(),
             SizedBox(height: 25.0),
             GestureDetector(
               onTap: () {
@@ -231,7 +246,9 @@ class _LoginState extends State<Login> {
 
   AppBar appBar() {
     return AppBar(
-      title: Text('Book Lo'),
+      title: Text(
+        toggleState == ToggleState.login ? "Login" : "Sign Up",
+      ),
       automaticallyImplyLeading: false,
     );
   }
