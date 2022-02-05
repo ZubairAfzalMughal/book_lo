@@ -1,15 +1,22 @@
 import 'package:book_lo/apis/book.dart';
-import 'package:book_lo/models/Post/post_model.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/build_category.dart';
 import 'package:book_lo/widgets/my_drawer.dart';
 import 'package:book_lo/widgets/post_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:search_page/search_page.dart';
-import 'package:provider/provider.dart';
 
-class Home extends StatelessWidget {
+import '../widgets/search_post.dart';
+
+class Home extends StatefulWidget {
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   List<String> _search = [
+    "All",
     "Offered",
     "requested",
     "science",
@@ -21,9 +28,10 @@ class Home extends StatelessWidget {
     "fiction",
     "computer",
   ];
+  int selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
-    final post = context.read<PostProvider>().post;
     return Scaffold(
       drawer: MyDrawer(),
       appBar: AppBar(
@@ -41,85 +49,74 @@ class Home extends StatelessWidget {
             child: _buildSearchbar(context),
           ),
           Container(
-            height: 55.0,
+            height: 53.0,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _search.length,
               itemBuilder: (ctx, index) {
                 return Padding(
-                  padding: const EdgeInsets.only(top: 17.0),
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: BuildCategory(
                     text: _search[index],
-                    index: index,
-                    onTap: () {},
+                    isSelected: selectedIndex == index,
+                    onTap: () {
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                    },
                   ),
                 );
               },
             ),
           ),
-          Expanded(
-            //Logic to show the header in ListView
-            child: ListView.builder(
-              itemCount: post.length + 1,
-              scrollDirection: Axis.vertical,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Request Books",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w900, fontSize: 22.0),
-                        ),
-                        GestureDetector(
-                          onTap: () {},
-                          child: Text(
-                            "See All",
-                            style: TextStyle(color: ColorPlatte.primaryColor),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  index -= 1;
-                  return BuildPostCard(
-                    post: post[index],
-                    isRequested: post[index].status == "requested",
+          StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('general')
+                  .orderBy('createdAt')
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
                   );
                 }
-              },
-            ),
-          ),
+                final posts = snapshot.data!.docs;
+                return Expanded(
+                  //Logic to show the header in ListView
+                  child: posts.length == 0
+                      ? Center(
+                          child: Text("No Posts Found"),
+                        )
+                      : ListView.builder(
+                          itemCount: posts.length,
+                          scrollDirection: Axis.vertical,
+                          itemBuilder: (context, index) {
+                            Map<String, dynamic> data =
+                                posts[index].data()! as Map<String, dynamic>;
+                            final post = Book.fromMap(data);
+                            return BuildPostCard(
+                                post: post,
+                                isRequested: post.userId !=
+                                    FirebaseAuth.instance.currentUser!.uid);
+                          },
+                        ),
+                );
+              }),
         ],
       ),
     );
   }
 
   _buildSearchbar(context) {
-    final post = Provider.of<PostProvider>(context, listen: false).post;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
-        onTap: () => showSearch(
+        onTap: () {
+          showSearch(
             context: context,
-            delegate: SearchPage<Book>(
-              failure: Center(
-                child: Text('No Book found :('),
-              ),
-              builder: (post) {
-                return BuildPostCard(
-                  post: post,
-                  isRequested: post.status == "requested",
-                );
-              },
-              filter: (post) =>
-                  [post.title, post.description, post.category, post.status],
-              items: post,
-            )),
+            delegate: SearchPost(),
+          );
+        },
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,

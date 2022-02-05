@@ -1,6 +1,6 @@
 import 'package:book_lo/apis/user.dart';
 import 'package:book_lo/app_shimmers/profile_header_shimmer.dart';
-import 'package:book_lo/models/Post/post_model.dart';
+import 'package:book_lo/app_shimmers/profile_stat_shimmer.dart';
 import 'package:book_lo/models/user/user_model.dart';
 import 'package:book_lo/screens/edit_Profile.dart';
 import 'package:book_lo/utility/color_palette.dart';
@@ -8,8 +8,11 @@ import 'package:book_lo/widgets/Profile_header.dart';
 import 'package:book_lo/widgets/post_card.dart';
 import 'package:book_lo/widgets/profile_stat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../apis/book.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -20,6 +23,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
@@ -27,6 +31,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
   }
 
   int selectdTab = 0;
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -35,7 +40,6 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final post = context.read<PostProvider>().post;
     return Scaffold(
       appBar: AppBar(
         title: Text("Profile"),
@@ -91,11 +95,31 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                 }),
           ),
           SliverToBoxAdapter(
-            child: ProfileStat(ratings: 4, offer: 150, request: 4),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('general')
+                  .where('userId',
+                      isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                final offer = snapshot.data?.docs
+                    .where((doc) => doc['status'] == 'offer')
+                    .toList();
+                final request = snapshot.data?.docs
+                    .where((doc) => doc['status'] == 'request')
+                    .toList();
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return ProfileStatShimmer();
+                }
+                return ProfileStat(
+                    ratings: 4,
+                    offer: offer?.length ?? 0,
+                    request: request?.length ?? 0);
+              },
+            ),
           ),
           SliverAppBar(
             pinned: true,
-            floating: false,
             automaticallyImplyLeading: false,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             toolbarHeight: 0.0,
@@ -116,39 +140,63 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
               ],
             ),
           ),
-
           SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                //Offer Page
-                Container(
-                  child: ListView.builder(
-                    itemCount: post.length,
-                    itemBuilder: (ctx, index) =>
-                        BuildPostCard(post: post[index], isRequested: false),
-                  ),
-                ),
-                //Request Page
-                Container(
-                  child: ListView.builder(
-                    itemCount: post.length,
-                    itemBuilder: (ctx, index) =>
-                        BuildPostCard(post: post[index], isRequested: false),
-                  ),
-                ),
-              ],
-            ),
+            child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('general')
+                    .where('userId',
+                        isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  final offer = snapshot.data?.docs
+                      .where((doc) => doc['status'] == 'offer')
+                      .toList();
+                  final request = snapshot.data?.docs
+                      .where((doc) => doc['status'] == 'request')
+                      .toList();
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  return SizedBox(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        //Offer Page
+                        Container(
+                          child: ListView.builder(
+                            itemCount: offer?.length,
+                            itemBuilder: (ctx, index) {
+                              Map<String, dynamic> data =
+                                  offer?[index].data() as Map<String, dynamic>;
+                              final post = Book.fromMap(data);
+                              return BuildPostCard(
+                                post: post,
+                                isRequested: post.userId !=
+                                    FirebaseAuth.instance.currentUser!.uid,
+                              );
+                            },
+                          ),
+                        ),
+                        //Request Page
+                        Container(
+                          child: ListView.builder(
+                            itemCount: request?.length,
+                            itemBuilder: (ctx, index) {
+                              Map<String, dynamic> data = request?[index].data()
+                                  as Map<String, dynamic>;
+                              final post = Book.fromMap(data);
+                              return BuildPostCard(
+                                  post: post,
+                                  isRequested: post.userId !=
+                                      FirebaseAuth.instance.currentUser!.uid);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
           ),
-          // SliverList(
-          //   delegate: SliverChildListDelegate(
-          //     [
-          //       Container(
-          //         height: 1000.0,
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );

@@ -10,6 +10,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,29 +44,31 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        appBarTheme: AppBarTheme(
-          color: ColorPlatte.primaryColor,
+    return OverlaySupport.global(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          appBarTheme: AppBarTheme(
+            color: ColorPlatte.primaryColor,
+          ),
+          textTheme: GoogleFonts.montserratTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+              backgroundColor: ColorPlatte.primaryColor),
         ),
-        textTheme: GoogleFonts.montserratTextTheme(
-          Theme.of(context).textTheme,
-        ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-            backgroundColor: ColorPlatte.primaryColor),
+        home: FutureBuilder(
+            future: Firebase.initializeApp(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Scaffold(
+                  backgroundColor: ColorPlatte.primaryColor,
+                );
+              } else {
+                return SecondarySplash();
+              }
+            }),
       ),
-      home: FutureBuilder(
-          future: Firebase.initializeApp(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return Scaffold(
-                backgroundColor: ColorPlatte.primaryColor,
-              );
-            } else {
-              return SecondarySplash();
-            }
-          }),
     );
   }
 }

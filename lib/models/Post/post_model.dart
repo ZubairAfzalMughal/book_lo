@@ -1,9 +1,20 @@
-import 'package:book_lo/apis/book.dart';
-import 'package:flutter/material.dart';
+// ignore_for_file: unused_local_variable
 
-enum Status { request, offer }
+import 'dart:io';
+
+import 'package:book_lo/apis/book.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class PostProvider extends ChangeNotifier {
+  final auth = FirebaseAuth.instance;
+  final userCollection = FirebaseFirestore.instance;
+  final generalCollection = FirebaseFirestore.instance.collection('general');
+  ImagePicker imagePicker = ImagePicker();
+  FirebaseStorage firebaseStorageRef = FirebaseStorage.instance;
   List<String> _catList = [
     "science",
     "history",
@@ -19,25 +30,40 @@ class PostProvider extends ChangeNotifier {
   String _type = "";
   String _imgPath = "";
   String _category = "";
-  Status? _status = Status.request;
+  bool _isLoading = false;
+  File? _file;
+  String _status = "";
 
   String get title => _title;
 
   String get type => _type;
 
+  File? get file => _file;
+
   String get desc => _desc;
+
+  bool get isLoading => _isLoading;
 
   String get imgPath => _imgPath;
 
-  String get category => _category;
+  String get status => _status;
 
-  Status? get status => _status;
+  String get category => _category;
 
   List<String> get catList => _catList;
 
-  setStatus(Status? s) {
-    _status = s;
-    _type = _status!.index == 0 ? "request" : "offer";
+  setTitle(String t) {
+    _title = t;
+    notifyListeners();
+  }
+
+  setDesc(String d) {
+    _desc = d;
+    notifyListeners();
+  }
+
+  setStatus(String s) {
+    _status = s == "request" ? "request" : "offer";
     notifyListeners();
   }
 
@@ -46,45 +72,72 @@ class PostProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Book> _post = [
-    Book(
-      userId: '1',
-      title: "9th Math",
-      description: "I have this novel I want to donat it",
-      imgUrl: "assets/images/post1.jpg",
-      category: "Science",
-      status: "requested",
-      createdAt: DateTime.now(),
-    ),
-    Book(
-      userId: '2',
-      description: "I have this novel I want to donat it",
-      title: "Science",
-      imgUrl: "assets/images/post1.jpg",
-      category: "Science",
-      status: "requested",
-      createdAt: DateTime.now(),
-    ),
-    Book(
-      userId: '3',
-      description: "I have this novel I want to donat it",
-      title: "Science",
-      imgUrl: "assets/images/post1.jpg",
-      category: "Science",
-      status: "requested",
-      createdAt: DateTime.now(),
-    ),
-    Book(
-      userId: '4',
-      description:
-          "I have this novel I want to donat it, I have this novel I want to donat it, I have this novel I want to donat it,",
-      title: "Science",
-      imgUrl: "assets/images/post1.jpg",
-      category: "Science",
-      status: "requested",
-      createdAt: DateTime.now(),
-    ),
-  ];
+  List<Book> _post = [];
+
+  uploadImage() async {
+    try {
+      final pickedFile = await imagePicker.pickImage(
+          source: ImageSource.camera, imageQuality: 85);
+      if (pickedFile != null) {
+        _file = File(pickedFile.path);
+      } else {
+        return;
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+    notifyListeners();
+  }
+
+  clearPostValues() {
+    _title = "";
+    _desc = "";
+    _imgPath = "";
+    _category = "";
+    _status = "";
+    _file = null;
+    notifyListeners();
+  }
+
+  Future uploadPost() async {
+    try {
+      final dir =
+          firebaseStorageRef.ref().child('${auth.currentUser!.uid}/posts');
+      UploadTask uploadTask =
+          dir.child('${DateTime.now()}.jpg').putFile(_file!);
+      TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+      final String url = (await snapshot.ref.getDownloadURL());
+      _imgPath = url;
+      //Uploading to user collection
+      Book book = Book(
+        userId: auth.currentUser!.uid,
+        category: _category,
+        imgUrl: _imgPath,
+        description: _desc,
+        createdAt: DateTime.now().toString(),
+        status: _status,
+        title: _title,
+      );
+      // userCollection
+      //     .collection('posts/${auth.currentUser!.uid}/post')
+      //     .add(book.toMap());
+      //Uploading to general collection
+      generalCollection.add(book.toMap());
+    } catch (e) {
+      return;
+    }
+    notifyListeners();
+  }
+
+  getBooks() {
+    generalCollection.get().then((QuerySnapshot snapshot) {
+      snapshot.docs.forEach((doc) {
+        Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+        post.add(Book.fromMap(data));
+      });
+    });
+    print(post.length);
+  }
 
   List<Book> get post => _post;
 }

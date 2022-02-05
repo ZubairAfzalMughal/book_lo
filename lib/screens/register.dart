@@ -43,6 +43,7 @@ class Register extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: TextFormField(
                 keyboardType: TextInputType.number,
+                maxLength: 12,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 onChanged: register.setPhoneNumber,

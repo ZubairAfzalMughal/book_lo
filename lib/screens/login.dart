@@ -6,6 +6,8 @@ import 'package:book_lo/widgets/error_dialog.dart';
 import 'package:book_lo/widgets/sample_button.dart';
 import 'package:book_lo/widgets/showIndicator.dart';
 import 'package:book_lo/widgets/toggle_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,8 +22,32 @@ enum ToggleState { login, signUp }
 
 class _LoginState extends State<Login> {
   ToggleState toggleState = ToggleState.login;
-
+  final auth = FirebaseAuth.instance;
+  final collection = FirebaseFirestore.instance.collection('admin');
   final _formKey = GlobalKey<FormState>();
+
+  checkAdmin(String email) async {
+    print("Checking admin");
+    var length = await collection.snapshots().length;
+    print(length);
+    collection.snapshots().map((QuerySnapshot<Map<String, dynamic>> snapshot) {
+      print("snapshot");
+      print(snapshot.docs);
+      snapshot.docs.map((query) {
+        print(query.data()['email']);
+        if (query.data()['email'] == email) {
+          final snackBar = SnackBar(
+            content: Text("User Status: Admin not allowed"),
+            duration: Duration(seconds: 2),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          print("You are current as a admin");
+          return;
+        }
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -147,6 +173,8 @@ class _LoginState extends State<Login> {
             !login.isLoading
                 ? SampleButton(
                     onPressed: () {
+                      //Checking admin
+                      //checkAdmin(login.email);
                       login.showLoader();
                       login.signIn(login.email, login.passowrd).then(
                         (value) {
@@ -163,7 +191,7 @@ class _LoginState extends State<Login> {
                         showDialog(
                           context: context,
                           builder: (context) => ErrorLog(
-                            text: error.toString(),
+                            text: error.message.toString(),
                           ),
                         );
                       });

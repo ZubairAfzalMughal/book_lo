@@ -21,7 +21,7 @@ class DrawerShimmer extends StatelessWidget {
           ),
         ),
         ...List.generate(
-          10,
+          7,
           (index) => Shimmer.fromColors(
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,

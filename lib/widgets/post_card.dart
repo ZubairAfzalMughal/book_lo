@@ -2,6 +2,8 @@ import 'package:book_lo/apis/book.dart';
 import 'package:book_lo/screens/chat_screen.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class BuildPostCard extends StatelessWidget {
   final Book post;
@@ -20,56 +22,90 @@ class BuildPostCard extends StatelessWidget {
           children: [
             Expanded(
               flex: 1,
-              child: Image.asset(
-                post.imgUrl,
-                fit: BoxFit.fill,
-                alignment: Alignment.center,
+              child: CachedNetworkImage(
+                imageUrl: post.imgUrl,
+                placeholder: (context, url) => Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    height: 200.0,
+                    color: Colors.grey,
+                  ),
+                ),
+                errorWidget: (context, url, error) => Icon(Icons.error),
               ),
             ),
             Expanded(
               flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.title,
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
-                  ),
-                  Container(
-                    width: size.width * 0.8,
-                    child: Text(
-                      post.description,
-                      maxLines: 3,
+              child: Padding(
+                padding:
+                    const EdgeInsets.only(left: 4.0, right: 4.0, bottom: 4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post.title,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20.0),
                     ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(8.0),
-                    margin: EdgeInsets.only(top: 8.0),
-                    decoration: BoxDecoration(
-                      color: ColorPlatte.primaryColor,
-                      borderRadius: BorderRadius.circular(22.0),
-                    ),
-                    child: Text(
-                      post.status,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  if (isRequested)
                     Expanded(
-                      child: IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChatScreen(),
-                            ),
-                          );
-                        },
-                        icon: Icon(Icons.message),
+                      child: Text(
+                        post.description,
+                        maxLines: 2,
+                        style: TextStyle(overflow: TextOverflow.ellipsis),
                       ),
                     ),
-                ],
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: ColorPlatte.primaryColor,
+                            borderRadius: BorderRadius.circular(22.0),
+                          ),
+                          child: Text(
+                            post.status,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        if (isRequested)
+                          IconButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatScreen(
+                                    receiverId: post.userId,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.chat,
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "Category ",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          post.category,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: ColorPlatte.primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:book_lo/apis/location.dart';
+import 'package:book_lo/screens/messages.dart';
 import 'package:book_lo/screens/notification.dart';
 import 'package:book_lo/screens/home.dart';
 import 'package:book_lo/screens/profile.dart';
@@ -22,6 +23,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
     Home(),
     AddBook(),
     Announcement(),
+    Message(),
     Profile(),
   ];
   late UserLocation userLocation;
@@ -83,6 +85,10 @@ class _BottomNavigationState extends State<BottomNavigation> {
                 child: Icon(Icons.notifications),
               ),
               label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.mail),
+            label: '',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle_outlined),
             label: '',

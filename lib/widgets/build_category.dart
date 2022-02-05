@@ -2,11 +2,14 @@ import 'package:book_lo/utility/color_palette.dart';
 import 'package:flutter/material.dart';
 
 class BuildCategory extends StatelessWidget {
-  final int index;
+  final bool isSelected;
   final String text;
   final VoidCallback onTap;
   const BuildCategory(
-      {Key? key, required this.index, required this.text, required this.onTap})
+      {Key? key,
+      required this.isSelected,
+      required this.text,
+      required this.onTap})
       : super(key: key);
 
   @override
@@ -16,7 +19,7 @@ class BuildCategory extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 2.0),
         decoration: BoxDecoration(
-          color: index == 1
+          color: isSelected
               ? ColorPlatte.primaryColor
               : ColorPlatte.secondaryColor,
           borderRadius: BorderRadius.circular(17.0),
@@ -26,7 +29,7 @@ class BuildCategory extends StatelessWidget {
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: TextStyle(color: index == 1 ? Colors.white : Colors.black),
+            style: TextStyle(color: isSelected ? Colors.white : Colors.black),
           ),
         ),
       ),
