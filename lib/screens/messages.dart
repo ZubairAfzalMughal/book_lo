@@ -33,11 +33,15 @@ class Message extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final doc =
                               docs[index].data() as Map<String, dynamic>;
-
+                          //displaying list of chat users
+                          final userCol = doc['senderId'] ==
+                                  FirebaseAuth.instance.currentUser!.uid
+                              ? doc['receiverId']
+                              : doc['senderId'];
                           return FutureBuilder<DocumentSnapshot>(
                               future: FirebaseFirestore.instance
                                   .collection('users')
-                                  .doc(doc['receiverId'])
+                                  .doc(userCol)
                                   .get(),
                               builder: (context,
                                   AsyncSnapshot<DocumentSnapshot> snapshot) {

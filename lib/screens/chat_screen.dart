@@ -57,7 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
                 stream: collection
-                    .collection('messages/$col}')
+                    .collection('$col')
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -125,29 +125,34 @@ class _ChatScreenState extends State<ChatScreen> {
                         message: controller.text,
                         createdAt: DateFormat.jm().format(DateTime.now()),
                       );
-                      collection
-                          .collection('messages/$col')
-                          .add(chat.toMap())
-                          .then((_) {
+                      collection.collection('$col').add(chat.toMap()).then((_) {
                         controller.clear();
                       }).catchError((e) {
                         print(e);
                       });
 
                       //Checking if collection of messages is not exists add user to the list of chats
-                      collection
-                          .collection('messages/$col')
-                          .get()
-                          .then((QuerySnapshot snapshot) {
-                        if (snapshot.docs.length == 1) {
-                          collection
-                              .collection('chat/${auth.currentUser!.uid}/list')
-                              .add({
-                            'senderId': auth.currentUser!.uid,
-                            'receiverId': widget.receiverId
-                          });
-                        }
-                      });
+                      collection.collection('$col').get().then(
+                        (QuerySnapshot snapshot) {
+                          if (snapshot.docs.length == 1) {
+                            //mainting list of chat of users for sender
+                            collection
+                                .collection(
+                                    'chat/${auth.currentUser!.uid}/list')
+                                .add({
+                              'senderId': auth.currentUser!.uid,
+                              'receiverId': widget.receiverId
+                            });
+                            //mainting list of chat of users for receiver
+                            collection
+                                .collection('chat/${widget.receiverId}/list')
+                                .add({
+                              'receiverId': auth.currentUser!.uid,
+                              'senderId': widget.receiverId
+                            });
+                          }
+                        },
+                      );
                     },
                   ),
                 ],
