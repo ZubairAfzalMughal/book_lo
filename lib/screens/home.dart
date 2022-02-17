@@ -1,4 +1,5 @@
 import 'package:book_lo/apis/book.dart';
+import 'package:book_lo/app_shimmers/home_shimmer.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/build_category.dart';
 import 'package:book_lo/widgets/my_drawer.dart';
@@ -16,7 +17,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<String> _search = [
-    "All",
     "Offered",
     "requested",
     "science",
@@ -76,9 +76,7 @@ class _HomeState extends State<Home> {
                   .snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return HomeShimmer();
                 }
                 final posts = snapshot.data!.docs;
                 return Expanded(

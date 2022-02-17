@@ -7,7 +7,6 @@ import '../utility/color_palette.dart';
 
 class SearchPost extends SearchDelegate {
   @override
-  @override
   List<Widget>? buildActions(BuildContext context) {
     return [
       IconButton(
@@ -37,48 +36,45 @@ class SearchPost extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('general')
-          .orderBy('createdAt')
-          .snapshots(),
-      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        final filtered = snapshot.data?.docs
-            .where(
-              (doc) =>
-          doc['title'].toString().contains(query) ||
-              doc['status'].toString().contains(query) ||
-              doc['category'].toString().contains(query),
-        )
-            .toList();
-        if (!snapshot.hasData) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        return filtered?.length == 0
-            ? Center(
-          child: Text("Value Not Foubd"),
-        )
-            : ListView.builder(
-          itemCount: filtered?.length,
-          itemBuilder: (context, index) {
-            Map<String, dynamic> data =
-            filtered?[index].data() as Map<String, dynamic>;
-            final post = Book.fromMap(data);
-            return BuildPostCard(
-                post: post,
-                isRequested:
-                post.status == 'request' || post.status == 'offer');
-          },
-        );
-      },
-    );
+    return Container();
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return Container();
+    return query.isNotEmpty
+        ? StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance.collection('general').snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              final docs = snapshot.data?.docs
+                  .where((doc) =>
+                      doc['title'].toString().contains(query) ||
+                      doc['status'].toString().contains(query) ||
+                      doc['category'].toString().contains(query))
+                  .toList();
+              return docs?.length == 0
+                  ? Center(
+                      child: Text("Value Not Found"),
+                    )
+                  : ListView.builder(
+                      itemCount: docs?.length,
+                      itemBuilder: (context, index) {
+                        Map<String, dynamic> data =
+                            docs?[index].data() as Map<String, dynamic>;
+                        final post = Book.fromMap(data);
+                        return BuildPostCard(
+                            post: post,
+                            isRequested: post.status == 'request' ||
+                                post.status == 'offer');
+                      },
+                    );
+            },
+          )
+        : SizedBox();
   }
 }

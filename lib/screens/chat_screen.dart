@@ -58,7 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: StreamBuilder<QuerySnapshot>(
                 stream: collection
                     .collection('$col')
-                    .orderBy('createdAt', descending: true)
+                    .orderBy('timeStamp', descending: true)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (!snapshot.hasData) {
@@ -120,11 +120,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     icon: Icon(Icons.send),
                     onPressed: () {
                       Chat chat = Chat(
-                        senderId: auth.currentUser!.uid,
-                        receiverId: widget.receiverId,
-                        message: controller.text,
-                        createdAt: DateFormat.jm().format(DateTime.now()),
-                      );
+                          senderId: auth.currentUser!.uid,
+                          receiverId: widget.receiverId,
+                          message: controller.text,
+                          createdAt: DateFormat.jm().format(DateTime.now()),
+                          timeStamp: DateTime.now().toString());
                       collection.collection('$col').add(chat.toMap()).then((_) {
                         controller.clear();
                       }).catchError((e) {

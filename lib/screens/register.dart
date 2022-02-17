@@ -1,5 +1,5 @@
 import 'package:book_lo/models/register/register_provider.dart';
-import 'package:book_lo/screens/bottom_navigation_bar.dart';
+import 'package:book_lo/screens/otps_screen.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/error_dialog.dart';
 import 'package:book_lo/widgets/sample_button.dart';
@@ -156,7 +156,7 @@ class Register extends StatelessWidget {
                       register
                           .registeration(register.email, register.password)
                           .then(
-                        (value) {
+                        (value) async {
                           register.offLoader();
                           register.firebaseFirestore
                               .collection('users')
@@ -169,10 +169,13 @@ class Register extends StatelessWidget {
                             "imgUrl": "",
                             'location': "",
                           });
+                          //sending email link to user for verification
+                          await register.auth.currentUser!
+                              .sendEmailVerification();
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => BottomNavigation(),
+                                builder: (_) => OtpScreens(),
                               ),
                               (route) => false);
                         },

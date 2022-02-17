@@ -33,11 +33,9 @@ class PostProvider extends ChangeNotifier {
   bool _isLoading = false;
   File? _file;
   String _status = "";
-
   String get title => _title;
 
   String get type => _type;
-
   File? get file => _file;
 
   String get desc => _desc;
