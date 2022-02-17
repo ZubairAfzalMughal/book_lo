@@ -36,6 +36,11 @@ class LoginProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearFields() {
+    this._email = "";
+    this._passowrd = "";
+    notifyListeners();
+  }
   //Log in
 
   Future<UserCredential> signIn(String e, String p) {

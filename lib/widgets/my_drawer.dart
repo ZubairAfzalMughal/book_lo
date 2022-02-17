@@ -6,6 +6,7 @@ import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/profile_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -71,8 +72,15 @@ class MyDrawer extends StatelessWidget {
                   color: ColorPlatte.primaryColor,
                 ),
                 ListTile(
+                  onTap: () {
+                    if (provider.auth.currentUser!.emailVerified == false) {
+                      provider.auth.currentUser!.sendEmailVerification();
+                      toast(
+                          "erification link has been sent to your email address");
+                    }
+                  },
                   title: Text("verification"),
-                  trailing: user.isVerified
+                  trailing: provider.auth.currentUser!.emailVerified
                       ? Icon(
                           Icons.verified,
                           color: Colors.green,

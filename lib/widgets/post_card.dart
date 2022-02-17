@@ -13,7 +13,6 @@ class BuildPostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return Container(
       height: 180.0,
       padding: EdgeInsets.all(8.0),

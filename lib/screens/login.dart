@@ -9,6 +9,7 @@ import 'package:book_lo/widgets/toggle_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
@@ -179,12 +180,13 @@ class _LoginState extends State<Login> {
                       login.signIn(login.email, login.passowrd).then(
                         (value) {
                           login.offLoader();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BottomNavigation(),
-                            ),
-                          );
+                          login.clearFields();
+                          Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BottomNavigation(),
+                              ),
+                              (route) => false);
                         },
                       ).catchError((error) {
                         login.offLoader();
@@ -217,6 +219,7 @@ class _LoginState extends State<Login> {
     );
   }
 
+  String fakeEmail = "";
   buildBottomSheet(Size size) {
     showModalBottomSheet(
       context: context,
@@ -253,6 +256,7 @@ class _LoginState extends State<Login> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: TextFormField(
+                  onChanged: (value) => setState(() => fakeEmail = value),
                   decoration: InputDecoration(
                     hintText: 'email',
                     prefixIcon: Icon(
@@ -264,7 +268,21 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-              SampleButton(onPressed: () {}, text: "Submit")
+              SampleButton(
+                  onPressed: () {
+                    auth.sendPasswordResetEmail(email: fakeEmail).then((_) {
+                      toast(
+                          "link has been sent to your email for password reset");
+                    }).catchError((error) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => ErrorLog(
+                          text: error.message.toString(),
+                        ),
+                      );
+                    });
+                  },
+                  text: "Submit")
             ],
           ),
         );

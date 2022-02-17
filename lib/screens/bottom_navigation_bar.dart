@@ -21,7 +21,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int currentIndex = 0;
   List<Widget> _pages = [
     Home(),
-    AddBook(),
     Announcement(),
     Message(),
     Profile(),
@@ -63,6 +62,16 @@ class _BottomNavigationState extends State<BottomNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[currentIndex],
+      floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AddBook(),
+              ),
+            );
+          },
+          child: Icon(Icons.add)),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         elevation: 2.0,
@@ -76,7 +85,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
         },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.add_box_rounded), label: ''),
           BottomNavigationBarItem(
               icon: Badge(
                 badgeContent: Text('11'),
