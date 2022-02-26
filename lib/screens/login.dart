@@ -2,6 +2,7 @@ import 'package:book_lo/models/login/login_model.dart';
 import 'package:book_lo/screens/bottom_navigation_bar.dart';
 import 'package:book_lo/screens/register.dart';
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/animated_routes.dart';
 import 'package:book_lo/widgets/error_dialog.dart';
 import 'package:book_lo/widgets/sample_button.dart';
 import 'package:book_lo/widgets/showIndicator.dart';
@@ -183,8 +184,8 @@ class _LoginState extends State<Login> {
                           login.clearFields();
                           Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => BottomNavigation(),
+                              AnimatedRoutes(
+                                routeWidget: BottomNavigation(),
                               ),
                               (route) => false);
                         },

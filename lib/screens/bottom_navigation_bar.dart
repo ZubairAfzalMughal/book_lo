@@ -1,3 +1,4 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:book_lo/apis/location.dart';
 import 'package:book_lo/screens/messages.dart';
 import 'package:book_lo/screens/notification.dart';
@@ -5,6 +6,7 @@ import 'package:book_lo/screens/home.dart';
 import 'package:book_lo/screens/profile.dart';
 import 'package:book_lo/screens/add_book.dart';
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/animated_routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -25,14 +27,42 @@ class _BottomNavigationState extends State<BottomNavigation> {
     Message(),
     Profile(),
   ];
+
+  late PageController _pageController;
   late UserLocation userLocation;
   @override
   void initState() {
+    _pageController = PageController(initialPage: 0);
     locationInitialization().then((location) {
       userLocation =
           UserLocation(lat: location.latitude, long: location.longitude);
       addLocationToDataBase();
     });
+
+    //Getting permission of notification in case permission is not enabled
+
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if (!isAllowed) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("Allow Notifications"),
+            actions: [
+              TextButton(
+                onPressed: () => AwesomeNotifications()
+                    .requestPermissionToSendNotifications(),
+                child: const Text("Yes"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("No"),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+
     super.initState();
   }
 
@@ -61,13 +91,16 @@ class _BottomNavigationState extends State<BottomNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[currentIndex],
+      body: PageView(
+        controller: _pageController,
+        children: _pages,
+      ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => AddBook(),
+              AnimatedRoutes(
+                routeWidget: AddBook(),
               ),
             );
           },
@@ -82,6 +115,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
           setState(() {
             currentIndex = index;
           });
+          _pageController.animateToPage(currentIndex,
+              duration: Duration(milliseconds: 800), curve: Curves.bounceInOut);
         },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
