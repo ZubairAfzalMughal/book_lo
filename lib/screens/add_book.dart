@@ -1,3 +1,4 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:book_lo/models/Post/post_model.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/sample_button.dart';
@@ -154,6 +155,8 @@ class _AddBookState extends State<AddBook> {
                                 Text("${book.status} Uploaded Successfully"),
                                 background: Colors.green[800],
                               );
+                              // Adding Notification to show that A Post has been added
+                              createBookNotification();
                             });
                           }
                         },
@@ -165,6 +168,19 @@ class _AddBookState extends State<AddBook> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  createBookNotification() {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: DateTime.now().microsecond,
+        channelKey: 'basic_channel',
+        title: "Book Lo",
+        body: "A new Book request/offer has been posted",
+        displayOnBackground: true,
+        displayOnForeground: true,
       ),
     );
   }

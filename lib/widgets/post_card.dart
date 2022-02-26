@@ -1,6 +1,7 @@
 import 'package:book_lo/apis/book.dart';
 import 'package:book_lo/screens/chat_screen.dart';
 import 'package:book_lo/utility/color_palette.dart';
+import 'package:book_lo/widgets/animated_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -72,8 +73,8 @@ class BuildPostCard extends StatelessWidget {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => ChatScreen(
+                                AnimatedRoutes(
+                                  routeWidget: ChatScreen(
                                     receiverId: post.userId,
                                   ),
                                 ),
