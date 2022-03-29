@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'dart:developer';
 import '../apis/chat.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -125,10 +125,31 @@ class _ChatScreenState extends State<ChatScreen> {
                           message: controller.text,
                           createdAt: DateFormat.jm().format(DateTime.now()),
                           timeStamp: DateTime.now().toString());
-                      collection.collection('$col').add(chat.toMap()).then((_) {
+                      collection
+                          .collection('$col')
+                          .add(chat.toMap())
+                          .then((_) async {
+                        //Calling fcm to send message to specific device
+                        // var user = await FirebaseFirestore.instance
+                        //     .collection('tokens')
+                        //     .doc(widget.receiverId)
+                        //     .get();
+
+                        // var _token = user.data();
+                        // var data = {'body': controller.text};
+                        // log(_token!['token']);
+                        // FirebaseMessaging.instance
+                        //     .sendMessage(to: _token['token'], data: data)
+                        //     .then(
+                        //       (value) => log("Message has been sent"),
+                        //     )
+                        //     .catchError((e) {
+                        //   log(e);
+                        // });
                         controller.clear();
+                        //
                       }).catchError((e) {
-                        print(e);
+                        log(e);
                       });
 
                       //Checking if collection of messages is not exists add user to the list of chats

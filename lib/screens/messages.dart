@@ -1,5 +1,4 @@
 import 'package:book_lo/screens/chat_screen.dart';
-import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/animated_routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

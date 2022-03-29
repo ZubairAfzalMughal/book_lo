@@ -2,6 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:book_lo/models/Post/post_model.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/sample_button.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -120,12 +121,13 @@ class _AddBookState extends State<AddBook> {
                         ),
                         IconButton(
                           icon: Icon(
-                            Icons.camera_alt,
+                            Icons.file_open,
                             color: ColorPlatte.primaryColor,
                             size: 30.0,
                           ),
                           onPressed: () {
-                            book.uploadImage();
+                            //book.uploadImage();
+                            _showOptionDialog();
                           },
                         ),
                       ],
@@ -172,6 +174,55 @@ class _AddBookState extends State<AddBook> {
     );
   }
 
+  _showOptionDialog() {
+    final img = context.read<PostProvider>();
+    return showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text("select options"),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ChooseCapture(
+                  img: img,
+                  icon: Icons.camera_alt,
+                  text: "Open Camera",
+                  context: context,
+                  onPressed: () {
+                    img.uploadImage(ImageSource.camera);
+                    Navigator.pop(context);
+                  },
+                ),
+                SizedBox(
+                  width: 10.0,
+                ),
+                ChooseCapture(
+                  img: img,
+                  context: context,
+                  icon: Icons.collections,
+                  text: "Open Gallery",
+                  onPressed: () {
+                    img.uploadImage(ImageSource.gallery);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "Back",
+                  style: TextStyle(color: ColorPlatte.primaryColor),
+                ),
+              ),
+            ],
+          );
+        });
+  }
+
   createBookNotification() {
     AwesomeNotifications().createNotification(
       content: NotificationContent(
@@ -213,4 +264,30 @@ class _AddBookState extends State<AddBook> {
           ),
         ),
       );
+}
+
+class ChooseCapture extends StatelessWidget {
+  const ChooseCapture(
+      {Key? key,
+      required this.img,
+      required this.context,
+      required this.onPressed,
+      required this.text,
+      required this.icon})
+      : super(key: key);
+
+  final PostProvider img;
+  final BuildContext context;
+  final VoidCallback onPressed;
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onPressed,
+      leading: Icon(icon),
+      title: Text(text),
+    );
+  }
 }

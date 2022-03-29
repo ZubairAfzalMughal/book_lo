@@ -9,6 +9,7 @@ import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/animated_routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart';
 import 'package:geolocator/geolocator.dart';
@@ -37,6 +38,16 @@ class _BottomNavigationState extends State<BottomNavigation> {
       userLocation =
           UserLocation(lat: location.latitude, long: location.longitude);
       addLocationToDataBase();
+    });
+
+    String id = FirebaseAuth.instance.currentUser!.uid;
+    FirebaseMessaging.instance.getToken().then((token) {
+      FirebaseFirestore.instance.collection('tokens').doc(id).set(
+        {
+          'userID': id,
+          'token': token,
+        },
+      );
     });
 
     //Getting permission of notification in case permission is not enabled
@@ -92,6 +103,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
+        physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
         children: _pages,
       ),
@@ -115,8 +127,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
           setState(() {
             currentIndex = index;
           });
-          _pageController.animateToPage(currentIndex,
-              duration: Duration(milliseconds: 800), curve: Curves.bounceInOut);
+          _pageController.jumpToPage(currentIndex);
         },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
