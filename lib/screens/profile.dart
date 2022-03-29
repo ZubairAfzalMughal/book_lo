@@ -26,7 +26,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     super.initState();
   }
 
@@ -43,10 +43,8 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(
         title: Text("Profile"),
-        automaticallyImplyLeading: false,
       ),
       body: CustomScrollView(
-        scrollDirection: Axis.vertical,
         slivers: [
           SliverToBoxAdapter(
             child: FutureBuilder<DocumentSnapshot>(
@@ -137,66 +135,85 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                   padding: const EdgeInsets.all(8.0),
                   child: Text("Request"),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("InProgress"),
+                ),
               ],
             ),
           ),
-          SliverFillRemaining(
-            child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('general')
-                    .where('userId',
-                        isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-                    .snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  final offer = snapshot.data?.docs
-                      .where((doc) => doc['status'] == 'offer')
-                      .toList();
-                  final request = snapshot.data?.docs
-                      .where((doc) => doc['status'] == 'request')
-                      .toList();
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  return SizedBox(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        //Offer Page
-                        Container(
-                          child: ListView.builder(
-                            itemCount: offer?.length,
-                            itemBuilder: (ctx, index) {
-                              Map<String, dynamic> data =
-                                  offer?[index].data() as Map<String, dynamic>;
-                              final post = Book.fromMap(data);
-                              return BuildPostCard(
-                                post: post,
-                                isRequested: post.userId !=
-                                    FirebaseAuth.instance.currentUser!.uid,
-                              );
-                            },
-                          ),
-                        ),
-                        //Request Page
-                        Container(
-                          child: ListView.builder(
-                            itemCount: request?.length,
-                            itemBuilder: (ctx, index) {
-                              Map<String, dynamic> data = request?[index].data()
-                                  as Map<String, dynamic>;
-                              final post = Book.fromMap(data);
-                              return BuildPostCard(
-                                  post: post,
-                                  isRequested: post.userId !=
-                                      FirebaseAuth.instance.currentUser!.uid);
-                            },
-                          ),
-                        ),
-                      ],
+          StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('general')
+                  .where('userId',
+                      isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                final offer = snapshot.data?.docs
+                    .where((doc) => doc['status'] == 'offer')
+                    .toList();
+                final request = snapshot.data?.docs
+                    .where((doc) => doc['status'] == 'request')
+                    .toList();
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return SliverToBoxAdapter(
+                    child: Center(
+                      child: CircularProgressIndicator(),
                     ),
                   );
-                }),
-          ),
+                } else if (snapshot.connectionState == ConnectionState.none) {
+                  return SliverToBoxAdapter(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                return SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      Container(
+                        height: 1000.0,
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            //offer
+                            Column(
+                              children: offer!.map((o) {
+                                final post = Book.fromMap(
+                                    o.data() as Map<String, dynamic>);
+                                return SizedBox(
+                                  child: BuildPostCard(
+                                    post: post,
+                                    isRequested: post.userId !=
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+
+                            //request
+                            Column(
+                              children: request!.map((r) {
+                                final post = Book.fromMap(
+                                    r.data() as Map<String, dynamic>);
+                                return SizedBox(
+                                  child: BuildPostCard(
+                                    post: post,
+                                    isRequested: post.userId !=
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            //Improve
+                            Text("hi"),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
         ],
       ),
     );

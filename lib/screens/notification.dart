@@ -56,7 +56,7 @@ class _AnnouncementState extends State<Announcement> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
-            FirebaseFirestore.instance.collection('notificaion').snapshots(),
+            FirebaseFirestore.instance.collection('notificaions').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
             return Center(
@@ -67,24 +67,28 @@ class _AnnouncementState extends State<Announcement> {
                 ? ListView(
                     children: snapshot.data!.docs
                         .map(
-                          (data) => ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              backgroundImage:
-                                  AssetImage('assets/images/book_logo.png'),
-                            ),
-                            title: Text(
-                              data['title'],
-                            ),
-                            subtitle: Text(
-                              data['body'],
+                          (data) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: ListTile(
+                              tileColor: Colors.grey[300],
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                backgroundImage:
+                                    AssetImage('assets/images/book_logo.png'),
+                              ),
+                              title: Text(
+                                data['title'],
+                              ),
+                              subtitle: Text(
+                                data['body'],
+                              ),
                             ),
                           ),
                         )
                         .toList(),
                   )
                 : Center(
-                    child: Text("Loading..."),
+                    child: Text("No Notification yet"),
                   );
           }
         },

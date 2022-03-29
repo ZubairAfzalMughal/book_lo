@@ -182,10 +182,11 @@ class Register extends StatelessWidget {
                       ).catchError((error) {
                         register.offLoader();
                         showDialog(
-                            context: context,
-                            builder: (_) => ErrorLog(
-                                  text: error.toString(),
-                                ));
+                          context: context,
+                          builder: (_) => ErrorLog(
+                            text: error.toString(),
+                          ),
+                        );
                       });
                     },
                     text: 'Register',

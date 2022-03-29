@@ -53,25 +53,56 @@ class SearchPost extends SearchDelegate {
               }
               final docs = snapshot.data?.docs
                   .where((doc) =>
-                      doc['title'].toString().contains(query) ||
-                      doc['status'].toString().contains(query) ||
+                      doc['title']
+                          .toString()
+                          .contains(query.toLowerCase().trim()) ||
+                      doc['status']
+                          .toString()
+                          .contains(query.toLowerCase().trim()) ||
                       doc['category'].toString().contains(query))
                   .toList();
               return docs?.length == 0
                   ? Center(
                       child: Text("Value Not Found"),
                     )
-                  : ListView.builder(
-                      itemCount: docs?.length,
-                      itemBuilder: (context, index) {
-                        Map<String, dynamic> data =
-                            docs?[index].data() as Map<String, dynamic>;
-                        final post = Book.fromMap(data);
-                        return BuildPostCard(
-                            post: post,
-                            isRequested: post.status == 'request' ||
-                                post.status == 'offer');
-                      },
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Total Result",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                TextSpan(
+                                  text: '${docs?.length}',
+                                  style: TextStyle(
+                                    color: ColorPlatte.primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: docs?.length,
+                            itemBuilder: (context, index) {
+                              Map<String, dynamic> data =
+                                  docs?[index].data() as Map<String, dynamic>;
+                              final post = Book.fromMap(data);
+                              return BuildPostCard(
+                                  post: post,
+                                  isRequested: post.status == 'request' ||
+                                      post.status == 'offer');
+                            },
+                          ),
+                        ),
+                      ],
                     );
             },
           )

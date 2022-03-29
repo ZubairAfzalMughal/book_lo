@@ -72,10 +72,16 @@ class PostProvider extends ChangeNotifier {
 
   List<Book> _post = [];
 
-  uploadImage() async {
+  uploadImage(ImageSource imageSource) async {
+    XFile? pickedFile;
     try {
-      final pickedFile = await imagePicker.pickImage(
-          source: ImageSource.camera, imageQuality: 85);
+      if (imageSource == ImageSource.camera) {
+        pickedFile = await imagePicker.pickImage(
+            source: ImageSource.camera, imageQuality: 85);
+      } else if (imageSource == ImageSource.gallery) {
+        pickedFile = await imagePicker.pickImage(
+            source: ImageSource.gallery, imageQuality: 85);
+      }
       if (pickedFile != null) {
         _file = File(pickedFile.path);
       } else {

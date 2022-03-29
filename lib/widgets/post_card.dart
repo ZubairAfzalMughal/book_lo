@@ -2,15 +2,43 @@ import 'package:book_lo/apis/book.dart';
 import 'package:book_lo/screens/chat_screen.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/animated_routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 
-class BuildPostCard extends StatelessWidget {
+// ignore: must_be_immutable
+class BuildPostCard extends StatefulWidget {
   final Book post;
   bool isRequested = false;
 
   BuildPostCard({Key? key, required this.post, required this.isRequested});
+
+  @override
+  State<BuildPostCard> createState() => _BuildPostCardState();
+}
+
+class _BuildPostCardState extends State<BuildPostCard> {
+  @override
+  void initState() {
+    if (this.mounted) {
+      getUserInfo().then((user) {
+        setState(() {
+          name = user['name'];
+        });
+      });
+    }
+    super.initState();
+  }
+
+  String name = "Loading...";
+  Future<DocumentSnapshot> getUserInfo() async {
+    return await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.post.userId)
+        .get();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +51,7 @@ class BuildPostCard extends StatelessWidget {
             Expanded(
               flex: 1,
               child: CachedNetworkImage(
-                imageUrl: post.imgUrl,
+                imageUrl: widget.post.imgUrl,
                 placeholder: (context, url) => Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
@@ -43,14 +71,33 @@ class BuildPostCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      post.title,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 20.0),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20.0,
+                          color: Colors.black,
+                          fontFamily: GoogleFonts.montserrat().fontFamily,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: widget.post.title,
+                          ),
+                          TextSpan(
+                            text: ' by ',
+                            style: TextStyle(
+                              color: ColorPlatte.primaryColor,
+                            ),
+                          ),
+                          TextSpan(
+                              text: name,
+                              style: TextStyle(color: Colors.green)),
+                        ],
+                      ),
                     ),
                     Expanded(
                       child: Text(
-                        post.description,
+                        widget.post.description,
                         maxLines: 2,
                         style: TextStyle(overflow: TextOverflow.ellipsis),
                       ),
@@ -64,18 +111,18 @@ class BuildPostCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(22.0),
                           ),
                           child: Text(
-                            post.status,
+                            widget.post.status,
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
-                        if (isRequested)
+                        if (widget.isRequested)
                           IconButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 AnimatedRoutes(
                                   routeWidget: ChatScreen(
-                                    receiverId: post.userId,
+                                    receiverId: widget.post.userId,
                                   ),
                                 ),
                               );
@@ -96,7 +143,7 @@ class BuildPostCard extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          post.category,
+                          widget.post.category,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: ColorPlatte.primaryColor,
