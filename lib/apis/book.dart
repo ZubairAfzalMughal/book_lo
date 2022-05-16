@@ -6,6 +6,7 @@ class Book {
   final String category;
   final String status;
   final String createdAt;
+  final String postId;
 
   Book(
       {required this.category,
@@ -14,7 +15,8 @@ class Book {
       required this.description,
       required this.imgUrl,
       required this.status,
-      required this.createdAt});
+      required this.createdAt,
+      required this.postId});
   Map<String, dynamic> toMap() => {
         'userId': userId,
         'title': title,
@@ -22,7 +24,8 @@ class Book {
         'category': category,
         'imgUrl': imgUrl,
         'status': status,
-        'createdAt': createdAt
+        'createdAt': createdAt,
+        'postId': postId
       };
 
   factory Book.fromMap(Map<String, dynamic> json) {
@@ -33,6 +36,7 @@ class Book {
         description: json['description'],
         imgUrl: json['imgUrl'],
         status: json['status'],
-        createdAt: json['createdAt']);
+        createdAt: json['createdAt'],
+        postId: json['postId']);
   }
 }

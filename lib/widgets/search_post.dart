@@ -55,11 +55,13 @@ class SearchPost extends SearchDelegate {
                   .where((doc) =>
                       doc['title']
                           .toString()
+                          .toLowerCase()
                           .contains(query.toLowerCase().trim()) ||
                       doc['status']
                           .toString()
+                          .toLowerCase()
                           .contains(query.toLowerCase().trim()) ||
-                      doc['category'].toString().contains(query))
+                      doc['category'].toString().toLowerCase().contains(query))
                   .toList();
               return docs?.length == 0
                   ? Center(

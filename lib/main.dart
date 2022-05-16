@@ -4,18 +4,25 @@ import 'package:book_lo/models/Post/post_model.dart';
 import 'package:book_lo/models/login/login_model.dart';
 import 'package:book_lo/models/profile/edit_profile_model.dart';
 import 'package:book_lo/models/register/register_provider.dart';
+import 'package:book_lo/models/update_done/post_update_done.dart';
 import 'package:book_lo/models/user/user_model.dart';
 import 'package:book_lo/screens/splash_screen.dart';
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]);
   await Firebase.initializeApp();
   FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
@@ -75,6 +82,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => MapProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_)=>PostHandle(),
         ),
       ],
       child: MyApp(),

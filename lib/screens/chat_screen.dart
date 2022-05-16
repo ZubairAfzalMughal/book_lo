@@ -1,12 +1,14 @@
-import 'package:book_lo/screens/map_screen.dart';
+
 import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/message_body.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'dart:developer';
 import '../apis/chat.dart';
+import '../models/update_done/post_update_done.dart';
 
 class ChatScreen extends StatefulWidget {
   final String receiverId;
@@ -23,6 +25,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final collection = FirebaseFirestore.instance;
   String col = "";
   TextEditingController controller = TextEditingController();
+
   generateCollection(String receiverId, String senderId) {
     if (receiverId.toLowerCase().codeUnits[0] >
         senderId.toLowerCase().codeUnits[0]) {
@@ -103,12 +106,59 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   IconButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MapScreen(),
-                        ),
-                      );
+                      //give warning if he click on it its requst or offer will added
+                      showDialog(
+                          context: context,
+                          builder: (_) {
+                            return AlertDialog(
+                              title: Text("Notice"),
+                              content: Text(
+                                  "Are you 100% bcz after clicking ok button book will be added in your pending section in profile section"),
+                              actions: [
+                                TextButton(
+                                  child: Text("No"),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text(
+                                    "OK",
+                                    style: TextStyle(color: Colors.green),
+                                  ),
+                                  onPressed: () {
+                                    final provider=Provider.of<PostHandle>(context,listen: false).post;
+                                    //updating general post status
+                                    collection.collection('general').doc(provider['postId']).update({
+                                      'status':'pending'
+                                    });
+                                    collection.collection(auth.currentUser!.uid).doc(provider['postId']).set({
+                                      ...provider,
+                                      'bookStatus':'pending',
+                                      'senderId':auth.currentUser!.uid,
+                                      'receiverId':widget.receiverId,
+                                    });
+                                    collection.collection(widget.receiverId).doc(provider['postId']).set({
+                                      ...provider,
+                                      'bookStatus':'pending',
+                                      'receiverId':auth.currentUser!.uid,
+                                      'senderId':widget.receiverId,
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            );
+                          });
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (_) => MapScreen(
+                      //       senderId: auth.currentUser!.uid,
+                      //       receiverId: widget.receiverId,
+                      //     ),
+                      //   ),
+                      // );
                     },
                     icon: Icon(
                       Icons.location_on,
