@@ -1,3 +1,4 @@
+import 'package:badges/badges.dart';
 import 'package:book_lo/apis/user.dart';
 import 'package:book_lo/app_shimmers/profile_header_shimmer.dart';
 import 'package:book_lo/app_shimmers/profile_stat_shimmer.dart';
@@ -7,11 +8,11 @@ import 'package:book_lo/utility/color_palette.dart';
 import 'package:book_lo/widgets/Profile_header.dart';
 import 'package:book_lo/widgets/post_card.dart';
 import 'package:book_lo/widgets/profile_stat.dart';
+import 'package:book_lo/widgets/updone_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../apis/book.dart';
 
 class Profile extends StatefulWidget {
@@ -26,8 +27,20 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    getBadges();
     super.initState();
+  }
+
+  getBadges() async {
+    final badgeSnapshots = await FirebaseFirestore.instance
+        .collection(FirebaseAuth.instance.currentUser!.uid)
+        .get();
+    pendingBadge =
+        badgeSnapshots.docs.where((q) => q['bookStatus'] == 'pending').length;
+    deliveredBadge =
+        badgeSnapshots.docs.where((q) => q['bookStatus'] == 'delivered').length;
+    setState(() {});
   }
 
   int selectdTab = 0;
@@ -37,6 +50,9 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
     _tabController.dispose();
     super.dispose();
   }
+
+  int pendingBadge = 0;
+  int deliveredBadge = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -110,9 +126,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                   return ProfileStatShimmer();
                 }
                 return ProfileStat(
-                    ratings: 4,
-                    offer: offer?.length ?? 0,
-                    request: request?.length ?? 0);
+                    offer: offer?.length ?? 0, request: request?.length ?? 0);
               },
             ),
           ),
@@ -126,6 +140,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
               controller: _tabController,
               indicatorColor: ColorPlatte.primaryColor,
               labelColor: ColorPlatte.primaryColor,
+              isScrollable: true,
               tabs: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -137,7 +152,28 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text("InProgress"),
+                  child: Badge(
+                    showBadge: pendingBadge == 0 ? false : true,
+                    badgeContent: Text(
+                      "$pendingBadge",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    child: Text("Pending"),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Badge(
+                    badgeColor: Colors.green,
+                    showBadge: deliveredBadge == 0 ? false : true,
+                    badgeContent: Text(
+                      "$deliveredBadge",
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                    child: Text("Delivered"),
+                  ),
                 ),
               ],
             ),
@@ -205,8 +241,64 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                                 );
                               }).toList(),
                             ),
-                            //Improve
-                            Text("hi"),
+                            //Pending
+                            StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection(
+                                      FirebaseAuth.instance.currentUser!.uid)
+                                  .snapshots(),
+                              builder: (context,
+                                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Text("Loading...");
+                                } else if (snapshot.connectionState ==
+                                    ConnectionState.none) {
+                                  return Text("");
+                                } else {
+                                  return Column(
+                                    children: snapshot.data!.docs
+                                        .where((doc) =>
+                                            doc['bookStatus'] == 'pending')
+                                        .map((e) {
+                                      Map<String, dynamic> map =
+                                          e.data() as Map<String, dynamic>;
+                                      return UpDonePost(
+                                          post: map, isRequested: false);
+                                    }).toList(),
+                                  );
+                                }
+                              },
+                            ),
+                            //Delivered
+                            StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection(
+                                      FirebaseAuth.instance.currentUser!.uid)
+                                  .snapshots(),
+                              builder: (context,
+                                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Text("Loading...");
+                                } else if (snapshot.connectionState ==
+                                    ConnectionState.none) {
+                                  return Text("");
+                                } else {
+                                  return Column(
+                                    children: snapshot.data!.docs
+                                        .where((doc) =>
+                                            doc['bookStatus'] == 'delivered')
+                                        .map((e) {
+                                      Map<String, dynamic> map =
+                                          e.data() as Map<String, dynamic>;
+                                      return UpDonePost(
+                                          post: map, isRequested: false);
+                                    }).toList(),
+                                  );
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),

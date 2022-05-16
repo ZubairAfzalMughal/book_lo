@@ -126,6 +126,7 @@ class _LoginState extends State<Login> {
                 validator: (email) =>
                     !email!.contains('@') ? "Enter valid Email" : null,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                keyboardType: TextInputType.emailAddress,
                 onChanged: login.setEmail,
                 decoration: InputDecoration(
                   errorBorder: ColorPlatte.inputBorder,
@@ -175,11 +176,20 @@ class _LoginState extends State<Login> {
             !login.isLoading
                 ? SampleButton(
                     onPressed: () {
-                      //Checking admin
-                      //checkAdmin(login.email);
                       login.showLoader();
                       login.signIn(login.email, login.passowrd).then(
                         (value) {
+                          if (!value.user!.emailVerified) {
+                            login.offLoader();
+                            login.auth.signOut();
+                            showDialog(
+                              context: context,
+                              builder: (context) => ErrorLog(
+                                text: "Verify Your Email Address",
+                              ),
+                            );
+                            return;
+                          }
                           login.offLoader();
                           login.clearFields();
                           Navigator.pushAndRemoveUntil(
@@ -221,6 +231,7 @@ class _LoginState extends State<Login> {
   }
 
   String fakeEmail = "";
+
   buildBottomSheet(Size size) {
     showModalBottomSheet(
       context: context,

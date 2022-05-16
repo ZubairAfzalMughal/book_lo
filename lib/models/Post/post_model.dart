@@ -24,6 +24,9 @@ class PostProvider extends ChangeNotifier {
     "mathematics",
     "fiction",
     "computer",
+    "School",
+    "College",
+    "University"
   ];
   String _title = "";
   String _desc = "";
@@ -72,7 +75,7 @@ class PostProvider extends ChangeNotifier {
 
   List<Book> _post = [];
 
-  uploadImage(ImageSource imageSource) async {
+  Future uploadImage(ImageSource imageSource) async {
     XFile? pickedFile;
     try {
       if (imageSource == ImageSource.camera) {
@@ -114,19 +117,19 @@ class PostProvider extends ChangeNotifier {
       _imgPath = url;
       //Uploading to user collection
       Book book = Book(
-        userId: auth.currentUser!.uid,
-        category: _category,
-        imgUrl: _imgPath,
-        description: _desc,
-        createdAt: DateTime.now().toString(),
-        status: _status,
-        title: _title,
-      );
-      // userCollection
-      //     .collection('posts/${auth.currentUser!.uid}/post')
-      //     .add(book.toMap());
-      //Uploading to general collection
-      generalCollection.add(book.toMap());
+          userId: auth.currentUser!.uid,
+          category: _category,
+          imgUrl: _imgPath,
+          description: _desc,
+          createdAt: DateTime.now().toString(),
+          status: _status,
+          title: _title,
+          postId: "");
+      generalCollection.add(book.toMap()).then(
+            (post) => generalCollection.doc(post.id).update(
+              {'postId': post.id},
+            ),
+          );
     } catch (e) {
       return;
     }

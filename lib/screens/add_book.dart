@@ -82,29 +82,32 @@ class _AddBookState extends State<AddBook> {
                     ),
                     Wrap(
                       children: book.catList
+                          .sublist(0, 8)
                           .map(
                             (b) => GestureDetector(
                               onTap: () {
                                 book.setCategory(b);
                               },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: b == book.category
-                                        ? ColorPlatte.primaryColor
-                                        : Colors.transparent,
-                                    border: Border.all(),
-                                    borderRadius: BorderRadius.circular(25.0)),
-                                padding: EdgeInsets.all(10.0),
-                                margin: EdgeInsets.all(5.0),
-                                child: Text(
-                                  b,
-                                  style: TextStyle(
-                                    color: b == book.category
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ),
+                              child: BuildCatSubWise(
+                                  b: b, category: book.category),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    Text(
+                      "Subject Wise",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Wrap(
+                      children: book.catList
+                          .sublist(8, book.catList.length)
+                          .map(
+                            (b) => GestureDetector(
+                              onTap: () {
+                                book.setCategory(b);
+                              },
+                              child: BuildCatSubWise(
+                                  b: b, category: book.category),
                             ),
                           )
                           .toList(),
@@ -137,30 +140,44 @@ class _AddBookState extends State<AddBook> {
                       child: SampleButton(
                         text: 'Upload',
                         onPressed: () {
-                          if (book.title.isEmpty &&
-                              book.desc.isEmpty &&
-                              book.category.isEmpty &&
-                              book.imgPath.isEmpty) {
-                            toast('Select all options');
-                          } else {
-                            setState(() {
-                              isLoading = true;
-                            });
-                            book.uploadPost().then((value) {
-                              setState(() {
-                                isLoading = false;
-                              });
-                              book.clearPostValues();
-                              _titleController.clear();
-                              _desController.clear();
-                              showSimpleNotification(
-                                Text("${book.status} Uploaded Successfully"),
-                                background: Colors.green[800],
-                              );
-                              // Adding Notification to show that A Post has been added
-                              createBookNotification();
-                            });
+                          if (book.title.isEmpty) {
+                            toast('Select Title');
+                            return;
                           }
+                          if (book.desc.isEmpty) {
+                            toast('Select Desc');
+                            return;
+                          }
+                          if (book.status.isEmpty) {
+                            toast('Select Status');
+                            return;
+                          }
+                          if (book.category.isEmpty) {
+                            toast('Select Category');
+                            return;
+                          }
+                          if (book.file!.path.isEmpty) {
+                            toast('Select Image');
+                            return;
+                          }
+
+                          setState(() {
+                            isLoading = true;
+                          });
+                          book.uploadPost().then((value) {
+                            setState(() {
+                              isLoading = false;
+                            });
+                            book.clearPostValues();
+                            _titleController.clear();
+                            _desController.clear();
+                            showSimpleNotification(
+                              Text("${book.status} Uploaded Successfully"),
+                              background: Colors.green[800],
+                            );
+                            // Adding Notification to show that A Post has been added
+                            createBookNotification();
+                          });
                         },
                       ),
                     ),
@@ -191,8 +208,9 @@ class _AddBookState extends State<AddBook> {
                   text: "Open Camera",
                   context: context,
                   onPressed: () {
-                    img.uploadImage(ImageSource.camera);
-                    Navigator.pop(context);
+                    img.uploadImage(ImageSource.camera).then((_) {
+                      Navigator.pop(context);
+                    });
                   },
                 ),
                 SizedBox(
@@ -204,8 +222,9 @@ class _AddBookState extends State<AddBook> {
                   icon: Icons.collections,
                   text: "Open Gallery",
                   onPressed: () {
-                    img.uploadImage(ImageSource.gallery);
-                    Navigator.pop(context);
+                    img.uploadImage(ImageSource.gallery).then((_) {
+                      Navigator.pop(context);
+                    });
                   },
                 ),
               ],
@@ -264,6 +283,29 @@ class _AddBookState extends State<AddBook> {
           ),
         ),
       );
+}
+
+class BuildCatSubWise extends StatelessWidget {
+  final String b;
+  final String category;
+  BuildCatSubWise({required this.b, required this.category});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          color: b == category ? ColorPlatte.primaryColor : Colors.transparent,
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(25.0)),
+      padding: EdgeInsets.all(10.0),
+      margin: EdgeInsets.all(5.0),
+      child: Text(
+        b,
+        style: TextStyle(
+          color: b == category ? Colors.white : Colors.black,
+        ),
+      ),
+    );
+  }
 }
 
 class ChooseCapture extends StatelessWidget {

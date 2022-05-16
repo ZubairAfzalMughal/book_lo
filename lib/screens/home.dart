@@ -17,6 +17,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<String> _search = [
+    "all",
     "science",
     "history",
     "arts",
@@ -25,9 +26,13 @@ class _HomeState extends State<Home> {
     "mathematics",
     "fiction",
     "computer",
+    "school",
+    "college",
+    "university"
   ];
   int selectedIndex = 0;
-  String query = "offer";
+  String query = "all";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +44,7 @@ class _HomeState extends State<Home> {
             elevation: 0.0,
             floating: true,
             bottom: PreferredSize(
-              preferredSize: Size(double.infinity, 100.0),
+              preferredSize: Size(double.infinity, 200.0),
               child: Container(
                 decoration: BoxDecoration(color: Colors.white),
                 child: Column(
@@ -51,26 +56,62 @@ class _HomeState extends State<Home> {
                       ),
                       child: _buildSearchbar(context),
                     ),
-                    Container(
-                      height: 53.0,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _search.length,
-                        itemBuilder: (ctx, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: BuildCategory(
-                              text: _search[index],
-                              isSelected: selectedIndex == index,
-                              onTap: () {
-                                setState(() {
-                                  selectedIndex = index;
-                                });
-                                query = _search[index];
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("General"),
+                          Container(
+                            height: 53.0,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _search.length - 3,
+                              itemBuilder: (ctx, index) {
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: BuildCategory(
+                                    text: _search[index],
+                                    isSelected: selectedIndex == index,
+                                    onTap: () {
+                                      setState(() {
+                                        selectedIndex = index;
+                                      });
+                                      query = _search[index];
+                                    },
+                                  ),
+                                );
                               },
                             ),
-                          );
-                        },
+                          ),
+                          Text("Subject Wise"),
+                          Container(
+                            height: 53.0,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _search.length,
+                              itemBuilder: (ctx, index) {
+                                if (index > 8)
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0),
+                                    child: BuildCategory(
+                                      text: _search[index],
+                                      isSelected: selectedIndex == index,
+                                      onTap: () {
+                                        setState(() {
+                                          selectedIndex = index;
+                                        });
+                                        query = _search[index];
+                                      },
+                                    ),
+                                  );
+                                return SizedBox();
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -94,35 +135,53 @@ class _HomeState extends State<Home> {
                 );
               }
 
-              final posts = snapshot.data!.docs;
-              final filtered = posts
-                  .where(
-                    (search) =>
-                        search['category'].toString().contains(query) &&
-                        search['userId'] !=
-                            FirebaseAuth.instance.currentUser!.uid,
-                  )
+              final posts = snapshot.data!.docs
+                  .where((q) =>
+                      q['userId'] != FirebaseAuth.instance.currentUser!.uid &&
+                      q['status'] != 'pending' &&
+                      q['status'] != 'delivered')
                   .toList();
-              return filtered.length == 0
+              final filtered = posts
+                  .where((search) => search['category']
+                      .toString()
+                      .toLowerCase()
+                      .contains(query.toLowerCase()))
+                  .toList();
+              return filtered.length == 0 && posts.length == 0
                   ? SliverToBoxAdapter(
                       child: Center(
                         child: Text("No Posts Found"),
                       ),
                     )
-                  : SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          Map<String, dynamic> data =
-                              filtered[index].data()! as Map<String, dynamic>;
-                          final post = Book.fromMap(data);
-                          return BuildPostCard(
-                              post: post,
-                              isRequested: post.userId !=
-                                  FirebaseAuth.instance.currentUser!.uid);
-                        },
-                        childCount: filtered.length,
-                      ),
-                    );
+                  : query == 'all'
+                      ? SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              Map<String, dynamic> data =
+                                  posts[index].data()! as Map<String, dynamic>;
+                              final post = Book.fromMap(data);
+                              return BuildPostCard(
+                                  post: post,
+                                  isRequested: post.userId !=
+                                      FirebaseAuth.instance.currentUser!.uid);
+                            },
+                            childCount: posts.length,
+                          ),
+                        )
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              Map<String, dynamic> data = filtered[index]
+                                  .data()! as Map<String, dynamic>;
+                              final post = Book.fromMap(data);
+                              return BuildPostCard(
+                                  post: post,
+                                  isRequested: post.userId !=
+                                      FirebaseAuth.instance.currentUser!.uid);
+                            },
+                            childCount: filtered.length,
+                          ),
+                        );
             },
           ),
         ],
@@ -166,78 +225,3 @@ class _HomeState extends State<Home> {
     );
   }
 }
-
-//body: Column(
-//   crossAxisAlignment: CrossAxisAlignment.start,
-//   children: [
-//     Container(
-//       height: 55.0,
-//       decoration: BoxDecoration(
-//         color: ColorPlatte.primaryColor,
-//       ),
-//       child: _buildSearchbar(context),
-//     ),
-//     Container(
-//       height: 53.0,
-//       child: ListView.builder(
-//         scrollDirection: Axis.horizontal,
-//         itemCount: _search.length,
-//         itemBuilder: (ctx, index) {
-//           return Padding(
-//             padding: const EdgeInsets.symmetric(vertical: 8.0),
-//             child: BuildCategory(
-//               text: _search[index],
-//               isSelected: selectedIndex == index,
-//               onTap: () {
-//                 setState(() {
-//                   selectedIndex = index;
-//                 });
-//                 query = _search[index];
-//               },
-//             ),
-//           );
-//         },
-//       ),
-//     ),
-//     StreamBuilder<QuerySnapshot>(
-//       stream: FirebaseFirestore.instance
-//           .collection('general')
-//           .orderBy('createdAt', descending: true)
-//           .snapshots(),
-//       builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return HomeShimmer();
-//         }
-//         final posts = snapshot.data!.docs;
-//         final filtered = posts
-//             .where(
-//               (search) =>
-//                   search['category'].toString().contains(query) &&
-//                   search['userId'] !=
-//                       FirebaseAuth.instance.currentUser!.uid,
-//             )
-//             .toList();
-//         return Expanded(
-//           //Logic to show the header in ListView
-//           child: filtered.length == 0
-//               ? Center(
-//                   child: Text("No Posts Found"),
-//                 )
-//               : ListView.builder(
-//                   itemCount: filtered.length,
-//                   scrollDirection: Axis.vertical,
-//                   itemBuilder: (context, index) {
-//                     Map<String, dynamic> data =
-//                         filtered[index].data()! as Map<String, dynamic>;
-//                     final post = Book.fromMap(data);
-//                     return BuildPostCard(
-//                         post: post,
-//                         isRequested: post.userId !=
-//                             FirebaseAuth.instance.currentUser!.uid);
-//                   },
-//                 ),
-//         );
-//       },
-//     ),
-//   ],
-// ),

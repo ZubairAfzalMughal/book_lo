@@ -1,3 +1,5 @@
+import 'package:book_lo/models/update_done/post_update_done.dart';
+import 'package:provider/provider.dart';
 import 'package:book_lo/apis/book.dart';
 import 'package:book_lo/screens/chat_screen.dart';
 import 'package:book_lo/utility/color_palette.dart';
@@ -33,6 +35,7 @@ class _BuildPostCardState extends State<BuildPostCard> {
   }
 
   String name = "Loading...";
+
   Future<DocumentSnapshot> getUserInfo() async {
     return await FirebaseFirestore.instance
         .collection('users')
@@ -118,11 +121,25 @@ class _BuildPostCardState extends State<BuildPostCard> {
                         if (widget.isRequested)
                           IconButton(
                             onPressed: () {
+                              //setting parameters to provider for pending and done post
+
+                              Map<String,dynamic> map={
+                                'title':widget.post.title,
+                                'desc':widget.post.description,
+                                'status':widget.post.status,
+                                'category':widget.post.category,
+                                'imgUrl':widget.post.imgUrl,
+                                'postId':widget.post.postId,
+                                'userId':widget.post.userId
+                              };
+                              final provider=Provider.of<PostHandle>(context,listen: false);
+                              provider.setPostHandle(map);
                               Navigator.push(
                                 context,
                                 AnimatedRoutes(
                                   routeWidget: ChatScreen(
                                     receiverId: widget.post.userId,
+
                                   ),
                                 ),
                               );
